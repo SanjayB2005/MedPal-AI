@@ -1,10 +1,7 @@
 
 import express from 'express'
 import cors from 'cors'
-import helmet from 'helmet'
-import morgan from 'morgan'
 import compression from 'compression'
-import rateLimit from 'express-rate-limit'
 import dotenv from 'dotenv'
 import { connectDB } from './utils/database.js'
 import { errorHandler } from './middleware/errorHandler.js'
@@ -29,77 +26,15 @@ connectDB().catch(err => {
   // Don't exit the process, let it continue for health checks
 })
 
-// Security middleware
-app.use(helmet())
+// Simple CORS - Allow everything
+app.use(cors())
+
+// Basic middleware
 app.use(compression())
-
-// CORS configuration - Allow multiple origins
-const allowedOrigins = [
-  'http://localhost:5173',
-  'http://localhost:5174',
-  'http://localhost:3000',
-  'https://med-pal-ai-ww4y.vercel.app',
-  'https://med-pal-ai.vercel.app'
-]
-
-// Add CLIENT_URL from environment if it exists
-if (process.env.CLIENT_URL) {
-  allowedOrigins.push(process.env.CLIENT_URL)
-}
-
-app.use(cors({
-  origin: function (origin, callback) {
-    // Allow requests with no origin (like mobile apps, curl, or Postman)
-    if (!origin) return callback(null, true)
-    
-    // Check if origin is in allowed list
-    if (allowedOrigins.includes(origin)) {
-      callback(null, true)
-    } else if (process.env.NODE_ENV === 'development') {
-      // In development, allow all origins
-      callback(null, true)
-    } else {
-      callback(null, false)
-    }
-  },
-  credentials: true,
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization'],
-  optionsSuccessStatus: 200
-}))
-
-// Trust proxy - required for Vercel and other proxies
-app.set('trust proxy', 1)
-
-// Rate limiting
-const limiter = rateLimit({
-  standardHeaders: true,
-  legacyHeaders: false,
-  windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 100, // limit each IP to 100 requests per windowMs
-  message: {
-    error: 'Too many requests from this IP, please try again later.'
-  }
-})
-app.use(limiter)
-
-// AI endpoint specific rate limiting (stricter)
-const aiLimiter = rateLimit({
-  standardHeaders: true,
-  legacyHeaders: false,
-  windowMs: 60 * 1000, // 1 minute
-  max: 10, // limit each IP to 10 AI requests per minute
-  message: {
-    error: 'Too many AI requests, please wait a moment before trying again.'
-  }
-})
 
 // Body parsing middleware
 app.use(express.json({ limit: '10mb' }))
 app.use(express.urlencoded({ extended: true, limit: '10mb' }))
-
-// Logging middleware
-app.use(morgan('combined'))
 
 // Health check endpoint
 app.get('/health', (req, res) => {
@@ -113,7 +48,7 @@ app.get('/health', (req, res) => {
 // API routes
 app.use('/api/auth', authRoutes)
 app.use('/api/user', userRoutes)
-app.use('/api/ai', aiLimiter, aiRoutes)
+app.use('/api/ai', aiRoutes)
 app.use('/api/history', historyRoutes)
 
 // 404 handler - must be after all other routes
