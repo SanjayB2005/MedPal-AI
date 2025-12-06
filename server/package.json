@@ -1,0 +1,44 @@
+{
+  "name": "ai-home-assistant-server",
+  "version": "1.0.0",
+  "description": "AI Home Assistant backend server with Express, MongoDB, and Gemini AI integration",
+  "main": "index.js",
+  "type": "module",
+  "scripts": {
+    "start": "node index.js",
+    "dev": "nodemon index.js",
+    "test": "jest",
+    "test:watch": "jest --watch"
+  },
+  "keywords": [
+    "ai",
+    "home-assistant",
+    "express",
+    "mongodb",
+    "gemini"
+  ],
+  "author": "AI Home Assistant",
+  "license": "MIT",
+  "dependencies": {
+    "@google/generative-ai": "^0.24.1",
+    "autoprefixer": "^10.4.22",
+    "bcryptjs": "^3.0.3",
+    "compression": "^1.8.1",
+    "cors": "^2.8.5",
+    "dotenv": "^17.2.3",
+    "express": "^5.2.1",
+    "express-rate-limit": "^8.2.1",
+    "express-validator": "^7.3.1",
+    "helmet": "^8.1.0",
+    "jsonwebtoken": "^9.0.2",
+    "mongoose": "^9.0.0",
+    "morgan": "^1.10.1",
+    "node-fetch": "^3.3.2",
+    "rate-limit": "^0.1.1"
+  },
+  "devDependencies": {
+    "jest": "^30.2.0",
+    "nodemon": "^3.1.11",
+    "supertest": "^7.1.4"
+  }
+}
