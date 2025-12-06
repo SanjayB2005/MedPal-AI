@@ -21,6 +21,8 @@ dotenv.config()
 // Create Express app
 const app = express()
 
+// Updated: December 6, 2025 - Fixed CORS and rate limiter for Vercel
+
 // Connect to MongoDB (non-blocking for Vercel)
 connectDB().catch(err => {
   console.error('Failed to connect to MongoDB:', err)
