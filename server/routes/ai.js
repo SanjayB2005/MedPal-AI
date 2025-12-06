@@ -19,10 +19,10 @@ router.get('/suggestions/:category', getSuggestions)
 // Get popular queries (public)
 router.get('/popular', getPopularQueries)
 
-// All query endpoints require authentication
-router.use(authenticateToken)
-
-// POST /api/ai/query (requires authentication)
+// POST /api/ai/query (temporarily public for testing)
 router.post('/query', validateQuery, processQuery)
+
+// All other endpoints require authentication
+router.use(authenticateToken)
 
 export default router

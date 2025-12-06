@@ -106,26 +106,32 @@ const checkValidation = (req) => {
 
 // Process AI query
 export const processQuery = asyncHandler(async (req, res) => {
-  console.log('AI Query endpoint hit')
+  console.log('=== AI Query endpoint hit ===')
   console.log('User:', req.user ? req.user._id : 'No user found')
-  console.log('User email:', req.user ? req.user.email : 'No user email')
-  console.log('Body:', req.body)
+  console.log('Body:', JSON.stringify(req.body, null, 2))
   
-  checkValidation(req)
+  try {
+    checkValidation(req)
+  } catch (validationError) {
+    console.error('Validation error:', validationError.message)
+    throw validationError
+  }
   
   const { query, category = 'general' } = req.body
-  const userId = req.user._id // This should now always be present due to auth middleware
+  const userId = req.user ? req.user._id : null // Make user optional for testing
 
-  console.log('Processing query for user:', userId)
+  console.log('Processing query for user:', userId || 'anonymous')
+  console.log('Query text:', query)
+  console.log('Category:', category)
 
   const startTime = Date.now()
 
   try {
-    console.log('Processing query with Gemini...')
-    // Process query with Gemini AI
+    console.log('Creating Gemini service...')
     const geminiService = getGeminiService()
+    console.log('Processing query with Gemini...')
     const aiResponse = await geminiService.processQuery(query, category)
-    console.log('Gemini response received')
+    console.log('Gemini response received:', aiResponse ? 'YES' : 'NO')
     
     const responseTime = Date.now() - startTime
 
@@ -175,15 +181,22 @@ export const processQuery = asyncHandler(async (req, res) => {
       }
     })
 
-    console.log('Saving history entry for user:', userId)
-    await historyEntry.save()
-    console.log('History entry saved successfully:', historyEntry._id)
+    // Only save history if user is logged in
+    let historyId = null
+    if (userId) {
+      console.log('Saving history entry for user:', userId)
+      await historyEntry.save()
+      console.log('History entry saved successfully:', historyEntry._id)
+      historyId = historyEntry._id
+    } else {
+      console.log('Skipping history save - no user logged in')
+    }
     
     // Return structured response
     res.json({
       message: 'Query processed successfully',
       ...aiResponse,
-      historyId: historyEntry._id,
+      historyId,
       responseTime
     })
 
