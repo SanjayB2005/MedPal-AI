@@ -1,4 +1,4 @@
-# HomeHelp AI Assistant - Complete Setup Guide
+# MedPal AI - Complete Setup Guide
 
 A comprehensive MERN stack AI-powered home assistant that helps users with household problems including pharmacy questions, cooking issues, electrical problems, and general maintenance using Google Gemini AI.
 
