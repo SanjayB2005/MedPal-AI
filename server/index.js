@@ -18,16 +18,24 @@ dotenv.config()
 // Create Express app
 const app = express()
 
-// Updated: December 6, 2025 - Fixed CORS and rate limiter for Vercel
+// Simple CORS - Allow everything (MUST be FIRST)
+app.use(cors())
 
-// Connect to MongoDB (non-blocking for Vercel)
-connectDB().catch(err => {
-  console.error('Failed to connect to MongoDB:', err)
-  // Don't exit the process, let it continue for health checks
+// Add error catching for async errors
+process.on('unhandledRejection', (reason, promise) => {
+  console.error('Unhandled Rejection:', reason)
 })
 
-// Simple CORS - Allow everything
-app.use(cors())
+process.on('uncaughtException', (error) => {
+  console.error('Uncaught Exception:', error)
+})
+
+// Connect to MongoDB (non-blocking for Vercel)
+if (process.env.MONGODB_URI) {
+  connectDB().catch(err => {
+    console.error('Failed to connect to MongoDB:', err)
+  })
+}
 
 // Basic middleware
 app.use(compression())
