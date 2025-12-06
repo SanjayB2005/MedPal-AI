@@ -21,8 +21,11 @@ dotenv.config()
 // Create Express app
 const app = express()
 
-// Connect to MongoDB
-connectDB()
+// Connect to MongoDB (non-blocking for Vercel)
+connectDB().catch(err => {
+  console.error('Failed to connect to MongoDB:', err)
+  // Don't exit the process, let it continue for health checks
+})
 
 // Security middleware
 app.use(helmet())
@@ -122,27 +125,30 @@ app.use((req, res) => {
 // Global error handler
 app.use(errorHandler)
 
-// Start server
-const PORT = process.env.PORT || 5000
-const server = app.listen(PORT, () => {
-  console.log(`🚀 AI Home Assistant server running on port ${PORT}`)
-  console.log(`🏠 Environment: ${process.env.NODE_ENV || 'development'}`)
-  console.log(`🔗 Health check: http://localhost:${PORT}/health`)
-})
-
-// Graceful shutdown
-process.on('SIGTERM', () => {
-  console.log('SIGTERM received. Shutting down gracefully...')
-  server.close(() => {
-    console.log('Process terminated')
+// Start server (only if not in Vercel serverless environment)
+if (process.env.VERCEL !== '1') {
+  const PORT = process.env.PORT || 5000
+  const server = app.listen(PORT, () => {
+    console.log(`🚀 AI Home Assistant server running on port ${PORT}`)
+    console.log(`🏠 Environment: ${process.env.NODE_ENV || 'development'}`)
+    console.log(`🔗 Health check: http://localhost:${PORT}/health`)
   })
-})
 
-process.on('SIGINT', () => {
-  console.log('SIGINT received. Shutting down gracefully...')
-  server.close(() => {
-    console.log('Process terminated')
+  // Graceful shutdown
+  process.on('SIGTERM', () => {
+    console.log('SIGTERM received. Shutting down gracefully...')
+    server.close(() => {
+      console.log('Process terminated')
+    })
   })
-})
 
+  process.on('SIGINT', () => {
+    console.log('SIGINT received. Shutting down gracefully...')
+    server.close(() => {
+      console.log('Process terminated')
+    })
+  })
+}
+
+// Export for Vercel
 export default app
