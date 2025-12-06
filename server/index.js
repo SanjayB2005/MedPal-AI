@@ -33,22 +33,33 @@ const allowedOrigins = [
   'http://localhost:5173',
   'http://localhost:5174',
   'http://localhost:3000',
-  process.env.CLIENT_URL,
+  'https://med-pal-ai-ww4y.vercel.app',
   'https://med-pal-ai.vercel.app'
-].filter(Boolean)
+]
+
+// Add CLIENT_URL from environment if it exists
+if (process.env.CLIENT_URL) {
+  allowedOrigins.push(process.env.CLIENT_URL)
+}
 
 app.use(cors({
   origin: function (origin, callback) {
-    // Allow requests with no origin (like mobile apps or curl requests)
+    // Allow requests with no origin (like mobile apps, curl, or Postman)
     if (!origin) return callback(null, true)
     
-    if (allowedOrigins.indexOf(origin) !== -1 || process.env.NODE_ENV === 'development') {
+    // Check if origin is in allowed list
+    if (allowedOrigins.includes(origin)) {
+      callback(null, true)
+    } else if (process.env.NODE_ENV === 'development') {
+      // In development, allow all origins
       callback(null, true)
     } else {
-      callback(new Error('Not allowed by CORS'))
+      callback(null, false)
     }
   },
   credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
   optionsSuccessStatus: 200
 }))
 
