@@ -63,8 +63,13 @@ app.use(cors({
   optionsSuccessStatus: 200
 }))
 
+// Trust proxy - required for Vercel and other proxies
+app.set('trust proxy', 1)
+
 // Rate limiting
 const limiter = rateLimit({
+  standardHeaders: true,
+  legacyHeaders: false,
   windowMs: 15 * 60 * 1000, // 15 minutes
   max: 100, // limit each IP to 100 requests per windowMs
   message: {
@@ -75,6 +80,8 @@ app.use(limiter)
 
 // AI endpoint specific rate limiting (stricter)
 const aiLimiter = rateLimit({
+  standardHeaders: true,
+  legacyHeaders: false,
   windowMs: 60 * 1000, // 1 minute
   max: 10, // limit each IP to 10 AI requests per minute
   message: {
