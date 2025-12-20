@@ -5,7 +5,8 @@ import Landing from './pages/Landing'
 import Login from './pages/Login'
 import Register from './pages/Register'
 import Dashboard from './pages/Dashboard'
-import Categories from './pages/Categories'
+import Reminders from './pages/Reminders'
+import MedicalRecords from './pages/MedicalRecords'
 import Profile from './pages/Profile'
 import History from './pages/History'
 
@@ -24,7 +25,8 @@ function App() {
           {/* Protected routes */}
           <Route path="/" element={user ? <Layout /> : <Navigate to="/" />}>
             <Route path="dashboard" element={<Dashboard />} />
-            <Route path="categories" element={<Categories />} />
+            <Route path="reminders" element={<Reminders />} />
+            <Route path="medical-records" element={<MedicalRecords />} />
             <Route path="profile" element={<Profile />} />
             <Route path="history" element={<History />} />
           </Route>

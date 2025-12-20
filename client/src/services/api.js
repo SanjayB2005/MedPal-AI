@@ -72,6 +72,37 @@ export const aiAPI = {
     return response.data
   },
 
+  sendQueryWithFile: async (queryText, file) => {
+    const formData = new FormData()
+    
+    // Add query text if provided
+    if (queryText) {
+      formData.append('query', queryText)
+    }
+    
+    // Add file if provided
+    if (file) {
+      formData.append('file', file)
+    }
+    
+    // Use fetch instead of axios to avoid Content-Type issues with FormData
+    const token = localStorage.getItem('auth-token')
+    const response = await fetch(`${API_BASE_URL}/ai/query`, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${token}`
+      },
+      body: formData
+    })
+    
+    if (!response.ok) {
+      const error = await response.json()
+      throw new Error(error.message || 'Failed to process query')
+    }
+    
+    return response.json()
+  },
+
   getSuggestions: async (category) => {
     const response = await api.get(`/ai/suggestions/${category}`)
     return response.data
@@ -128,6 +159,89 @@ export const historyAPI = {
     const response = await api.delete('/history', {
       data: { confirm: 'DELETE_ALL_HISTORY' }
     })
+    return response.data
+  }
+}
+
+// Reminder endpoints
+export const reminderAPI = {
+  getReminders: async (params = {}) => {
+    const response = await api.get('/reminders', { params })
+    return response.data
+  },
+
+  getReminder: async (id) => {
+    const response = await api.get(`/reminders/${id}`)
+    return response.data
+  },
+
+  createReminder: async (reminderData) => {
+    const response = await api.post('/reminders', reminderData)
+    return response.data
+  },
+
+  updateReminder: async (id, reminderData) => {
+    const response = await api.put(`/reminders/${id}`, reminderData)
+    return response.data
+  },
+
+  deleteReminder: async (id) => {
+    const response = await api.delete(`/reminders/${id}`)
+    return response.data
+  },
+
+  markAsCompleted: async (id, notes = '') => {
+    const response = await api.post(`/reminders/${id}/complete`, { notes })
+    return response.data
+  },
+
+  markAsSkipped: async (id, notes = '') => {
+    const response = await api.post(`/reminders/${id}/skip`, { notes })
+    return response.data
+  },
+
+  resetTodayStatus: async (id) => {
+    const response = await api.post(`/reminders/${id}/reset`)
+    return response.data
+  },
+
+  getStats: async () => {
+    const response = await api.get('/reminders/stats')
+    return response.data
+  }
+}
+
+// Medical Records endpoints
+export const medicalRecordsAPI = {
+  upload: async (formData) => {
+    const response = await api.post('/medical-records', formData, {
+      headers: { 'Content-Type': 'multipart/form-data' }
+    })
+    return response.data
+  },
+  
+  getAll: async (params) => {
+    const response = await api.get('/medical-records', { params })
+    return response.data
+  },
+  
+  getOne: async (id) => {
+    const response = await api.get(`/medical-records/${id}`)
+    return response.data
+  },
+  
+  update: async (id, data) => {
+    const response = await api.put(`/medical-records/${id}`, data)
+    return response.data
+  },
+  
+  toggleStar: async (id) => {
+    const response = await api.patch(`/medical-records/${id}/star`)
+    return response.data
+  },
+  
+  delete: async (id) => {
+    const response = await api.delete(`/medical-records/${id}`)
     return response.data
   }
 }

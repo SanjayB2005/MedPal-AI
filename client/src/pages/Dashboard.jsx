@@ -14,7 +14,10 @@ import {
   ChatBubbleLeftRightIcon,
   XMarkIcon,
   UserIcon,
-  MapPinIcon
+  MapPinIcon,
+  PaperClipIcon,
+  DocumentIcon,
+  PhotoIcon
 } from '@heroicons/react/24/outline'
 import { Link } from 'react-router-dom'
 
@@ -24,7 +27,10 @@ const Dashboard = () => {
   const [showLocationSearch, setShowLocationSearch] = useState(false)
   const [locationServiceType, setLocationServiceType] = useState('')
   const [userLocation, setUserLocation] = useState(null)
+  const [selectedFile, setSelectedFile] = useState(null)
+  const [filePreview, setFilePreview] = useState(null)
   const messagesEndRef = useRef(null)
+  const fileInputRef = useRef(null)
   
   const { messages, isLoading, addMessagePair, setLoading } = useChatStore()
   const { user } = useAuthStore()
@@ -115,19 +121,71 @@ const Dashboard = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" })
   }
 
+  const handleFileSelect = (e) => {
+    const file = e.target.files[0]
+    if (!file) return
+
+    // Validate file type
+    const validTypes = ['image/jpeg', 'image/jpg', 'image/png', 'application/pdf']
+    if (!validTypes.includes(file.type)) {
+      alert('Please select a valid file (JPG, PNG, or PDF)')
+      return
+    }
+
+    // Validate file size (10MB max)
+    if (file.size > 10 * 1024 * 1024) {
+      alert('File size must be less than 10MB')
+      return
+    }
+
+    setSelectedFile(file)
+
+    // Create preview for images
+    if (file.type.startsWith('image/')) {
+      const reader = new FileReader()
+      reader.onloadend = () => {
+        setFilePreview(reader.result)
+      }
+      reader.readAsDataURL(file)
+    } else {
+      setFilePreview(null)
+    }
+  }
+
+  const handleRemoveFile = () => {
+    setSelectedFile(null)
+    setFilePreview(null)
+    if (fileInputRef.current) {
+      fileInputRef.current.value = ''
+    }
+  }
+
   const handleSubmit = async (e) => {
     e.preventDefault()
-    if (!inputMessage.trim() || isLoading) return
+    if ((!inputMessage.trim() && !selectedFile) || isLoading) return
 
-    const userMessage = inputMessage.trim()
+    const userMessage = inputMessage.trim() || 'Analyze medical report'
     setInputMessage('')
+    const fileToSend = selectedFile
+    setSelectedFile(null)
+    setFilePreview(null)
+    if (fileInputRef.current) {
+      fileInputRef.current.value = ''
+    }
     setLoading(true)
 
     try {
-      const response = await aiAPI.sendQuery({
-        query: userMessage,
-        category: selectedCategory || 'general'
-      })
+      let response
+      
+      // Use file upload API if file is selected
+      if (fileToSend) {
+        response = await aiAPI.sendQueryWithFile(userMessage, fileToSend)
+      } else {
+        response = await aiAPI.sendQuery({
+          query: userMessage,
+          category: selectedCategory || 'general'
+        })
+      }
 
       // Add location suggestion data to the response if present
       const enhancedResponse = {
@@ -390,6 +448,32 @@ const Dashboard = () => {
                   <span className="font-semibold text-purple-600"> home maintenance</span>.
                 </p>
                 
+                {/* Medical Report Upload Feature Highlight */}
+                <div className="mb-8 p-6 bg-gradient-to-r from-blue-50 to-purple-50 rounded-2xl border-2 border-blue-200">
+                  <div className="flex items-start gap-4">
+                    <div className="p-3 bg-blue-100 rounded-xl">
+                      <PhotoIcon className="h-8 w-8 text-blue-600" />
+                    </div>
+                    <div className="flex-1">
+                      <h3 className="font-bold text-blue-900 mb-2 text-lg">📋 Upload Medical Reports</h3>
+                      <p className="text-blue-700 mb-3">
+                        Upload photos or PDFs of your medical reports, test results, or prescriptions. 
+                        I'll analyze them and explain everything in simple, easy-to-understand terms.
+                      </p>
+                      <div className="flex flex-wrap gap-2">
+                        <span className="inline-flex items-center px-2 py-1 bg-blue-100 text-blue-700 text-xs rounded-md font-medium">
+                          ✓ Images (JPG, PNG)
+                        </span>
+                        <span className="inline-flex items-center px-2 py-1 bg-blue-100 text-blue-700 text-xs rounded-md font-medium">
+                          ✓ PDF Documents
+                        </span>
+                        <span className="inline-flex items-center px-2 py-1 bg-blue-100 text-blue-700 text-xs rounded-md font-medium">
+                          ✓ Up to 10MB
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
                 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
                   <div className="p-4 bg-blue-50 rounded-xl border border-blue-200">
@@ -444,6 +528,36 @@ const Dashboard = () => {
         <div className="border-t border-gray-200/50 bg-white/90 backdrop-blur-sm">
           <div className="p-6">
             <form onSubmit={handleSubmit} className="max-w-6xl mx-auto">
+              
+              {/* File Preview */}
+              {selectedFile && (
+                <div className="mb-4 p-4 bg-blue-50 border-2 border-blue-200 rounded-xl">
+                  <div className="flex items-start gap-3">
+                    {filePreview ? (
+                      <img src={filePreview} alt="Preview" className="w-20 h-20 object-cover rounded-lg" />
+                    ) : (
+                      <div className="w-20 h-20 bg-red-100 rounded-lg flex items-center justify-center">
+                        <DocumentIcon className="h-10 w-10 text-red-600" />
+                      </div>
+                    )}
+                    <div className="flex-1">
+                      <h4 className="font-semibold text-blue-800 mb-1">Selected File</h4>
+                      <p className="text-sm text-blue-600 mb-1">{selectedFile.name}</p>
+                      <p className="text-xs text-blue-500">
+                        {selectedFile.type} • {(selectedFile.size / 1024).toFixed(2)} KB
+                      </p>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={handleRemoveFile}
+                      className="text-blue-600 hover:text-blue-800 transition-colors"
+                    >
+                      <XMarkIcon className="h-5 w-5" />
+                    </button>
+                  </div>
+                </div>
+              )}
+              
               <div className="flex gap-4 items-end">
                 <div className="flex-1">
                   <div className="relative">
@@ -451,8 +565,8 @@ const Dashboard = () => {
                       type="text"
                       value={inputMessage}
                       onChange={(e) => setInputMessage(e.target.value)}
-                      placeholder="Ask me anything about your household needs..."
-                      className="w-full p-4 pr-12 border-2 border-gray-200 rounded-2xl focus:border-blue-500 focus:ring-0 transition-colors text-gray-900 placeholder-gray-500 bg-white shadow-sm"
+                      placeholder={selectedFile ? "Add a question about this medical report..." : "Ask me anything or upload a medical report..."}
+                      className="w-full p-4 pr-24 border-2 border-gray-200 rounded-2xl focus:border-blue-500 focus:ring-0 transition-colors text-gray-900 placeholder-gray-500 bg-white shadow-sm"
                       disabled={isLoading}
                     />
                     {inputMessage && (
@@ -464,13 +578,32 @@ const Dashboard = () => {
                         <XMarkIcon className="h-5 w-5" />
                       </button>
                     )}
+                    
+                    {/* File Upload Button */}
+                    <input
+                      ref={fileInputRef}
+                      type="file"
+                      accept="image/jpeg,image/jpg,image/png,application/pdf"
+                      onChange={handleFileSelect}
+                      className="hidden"
+                      disabled={isLoading}
+                    />
+                    <button
+                      type="button"
+                      onClick={() => fileInputRef.current?.click()}
+                      disabled={isLoading}
+                      className="absolute right-4 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-blue-600 transition-colors disabled:opacity-50"
+                      title="Upload medical report (Image or PDF)"
+                    >
+                      <PaperClipIcon className="h-6 w-6" />
+                    </button>
                   </div>
                 </div>
                 <button
                   type="submit"
-                  disabled={!inputMessage.trim() || isLoading}
+                  disabled={(!inputMessage.trim() && !selectedFile) || isLoading}
                   className={`p-4 bg-gradient-to-r from-blue-500 to-purple-600 text-white rounded-2xl shadow-lg hover:shadow-xl transform transition-all duration-200 flex items-center justify-center min-w-[60px] ${
-                    (!inputMessage.trim() || isLoading) ? 'opacity-50 cursor-not-allowed hover:shadow-lg hover:transform-none' : 'hover:scale-105'
+                    ((!inputMessage.trim() && !selectedFile) || isLoading) ? 'opacity-50 cursor-not-allowed hover:shadow-lg hover:transform-none' : 'hover:scale-105'
                   }`}
                 >
                   {isLoading ? (
@@ -490,7 +623,7 @@ const Dashboard = () => {
                 )}
                 <div className="flex items-center gap-2 text-xs text-gray-500">
                   <SparklesIcon className="h-4 w-4" />
-                  <span>Powered by AI • Always consult professionals for complex issues</span>
+                  <span>Powered by AI • Upload medical reports (JPG, PNG, PDF) for analysis</span>
                 </div>
               </div>
             </form>

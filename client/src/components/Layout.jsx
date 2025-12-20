@@ -2,9 +2,10 @@ import { Outlet, Link, useLocation } from 'react-router-dom'
 import { useState } from 'react'
 import { 
   HomeIcon, 
-  ChatBubbleLeftIcon, 
+  BellIcon, 
   UserIcon, 
   ClockIcon,
+  FolderIcon,
   Bars3Icon,
   XMarkIcon,
   SparklesIcon
@@ -25,10 +26,10 @@ const Layout = () => {
       description: 'Chat with AI assistant'
     },
     { 
-      name: '📋 Categories', 
-      href: '/categories', 
-      icon: ChatBubbleLeftIcon,
-      description: 'Browse help topics'
+      name: '� Reminders', 
+      href: '/reminders', 
+      icon: BellIcon,
+      description: 'Medication & task reminders'
     },
     { 
       name: '📝 History', 
@@ -37,7 +38,13 @@ const Layout = () => {
       description: 'View past conversations'
     },
     { 
-      name: '👤 Profile', 
+      name: '� Medical Records', 
+      href: '/medical-records', 
+      icon: FolderIcon,
+      description: 'Store and manage medical files'
+    },
+    { 
+      name: '�👤 Profile', 
       href: '/profile', 
       icon: UserIcon,
       description: 'Manage your account'

@@ -11,6 +11,8 @@ import authRoutes from './routes/auth.js'
 import userRoutes from './routes/user.js'
 import aiRoutes from './routes/ai.js'
 import historyRoutes from './routes/history.js'
+import reminderRoutes from './routes/reminders.js'
+import medicalRecordRoutes from './routes/medicalRecords.js'
 
 // Load environment variables
 dotenv.config()
@@ -58,6 +60,8 @@ app.use('/api/auth', authRoutes)
 app.use('/api/user', userRoutes)
 app.use('/api/ai', aiRoutes)
 app.use('/api/history', historyRoutes)
+app.use('/api/reminders', reminderRoutes)
+app.use('/api/medical-records', medicalRecordRoutes)
 
 // 404 handler - must be after all other routes
 app.use((req, res) => {

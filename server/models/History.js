@@ -143,8 +143,8 @@ historySchema.methods.addFeedback = async function(feedbackData) {
   return await this.save()
 }
 
-// Instance method to toggle bookmark
-historySchema.methods.toggleBookmark = async function() {
+// Instance method to toggle favorite/bookmark
+historySchema.methods.toggleFavorite = async function() {
   this.isBookmarked = !this.isBookmarked
   return await this.save()
 }

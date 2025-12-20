@@ -7,6 +7,7 @@ import {
   validateQuery
 } from '../controllers/aiController.js'
 import { authenticateToken } from '../middleware/auth.js'
+import { upload } from '../middleware/upload.js'
 
 const router = express.Router()
 
@@ -19,8 +20,9 @@ router.get('/suggestions/:category', getSuggestions)
 // Get popular queries (public)
 router.get('/popular', getPopularQueries)
 
-// POST /api/ai/query (temporarily public for testing)
-router.post('/query', validateQuery, processQuery)
+// POST /api/ai/query - requires authentication to save history
+// Accepts optional file upload (image or PDF)
+router.post('/query', authenticateToken, upload.single('file'), validateQuery, processQuery)
 
 // All other endpoints require authentication
 router.use(authenticateToken)

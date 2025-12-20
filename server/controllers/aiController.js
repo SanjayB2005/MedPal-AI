@@ -2,23 +2,44 @@ import { body, validationResult } from 'express-validator'
 import GeminiService from '../services/geminiService.js'
 import History from '../models/History.js'
 import { asyncHandler, APIError } from '../middleware/errorHandler.js'
+import { createRequire } from 'module'
+
+// Import CommonJS module pdf-parse
+const require = createRequire(import.meta.url)
+const pdfParse = require('pdf-parse')
 
 // Function to get Gemini service instance
 const getGeminiService = () => {
   return new GeminiService()
 }
 
-// Validation middleware
+// Validation rules (query is optional when file is uploaded)
 export const validateQuery = [
   body('query')
+    .optional()
     .trim()
-    .isLength({ min: 5, max: 1000 })
-    .withMessage('Query must be between 5 and 1000 characters'),
+    .isLength({ max: 1000 })
+    .withMessage('Query cannot exceed 1000 characters'),
   body('category')
     .optional()
     .isIn(['pharmacy', 'cooking', 'electrical', 'household', 'general'])
     .withMessage('Invalid category')
 ]
+
+// Helper function to extract text from PDF
+const extractTextFromPDF = async (buffer) => {
+  try {
+    const data = await pdfParse(buffer)
+    return data.text
+  } catch (error) {
+    throw new Error('Failed to extract text from PDF')
+  }
+}
+
+// Helper function to convert image buffer to base64
+const imageToBase64 = (buffer) => {
+  return buffer.toString('base64')
+}
 
 // Helper function to detect if user needs professional services or shop recommendations
 const detectProfessionalServiceNeed = (query, category) => {
@@ -109,6 +130,7 @@ export const processQuery = asyncHandler(async (req, res) => {
   console.log('=== AI Query endpoint hit ===')
   console.log('User:', req.user ? req.user._id : 'No user found')
   console.log('Body:', JSON.stringify(req.body, null, 2))
+  console.log('File:', req.file ? `${req.file.originalname} (${req.file.mimetype})` : 'No file')
   
   try {
     checkValidation(req)
@@ -118,10 +140,44 @@ export const processQuery = asyncHandler(async (req, res) => {
   }
   
   const { query, category = 'general' } = req.body
-  const userId = req.user ? req.user._id : null // Make user optional for testing
+  const userId = req.user ? req.user._id : null
+  const file = req.file // File from multer middleware
+
+  let enhancedQuery = query || ''
+  let fileAnalysisResult = null
+
+  // Handle file upload (image or PDF)
+  if (file) {
+    console.log('Processing uploaded file:', file.originalname)
+    const fileType = file.mimetype
+
+    if (fileType === 'application/pdf') {
+      // Extract text from PDF
+      console.log('Extracting text from PDF...')
+      const extractedText = await extractTextFromPDF(file.buffer)
+      fileAnalysisResult = {
+        type: 'pdf',
+        extractedText: extractedText.substring(0, 10000) // Limit to 10k chars
+      }
+      
+      enhancedQuery = `I have uploaded a medical report/document (PDF). Here is the extracted text:\n\n${fileAnalysisResult.extractedText}\n\nUser's question: ${query || 'Please explain this medical report in simple terms that I can easily understand.'}`
+      console.log('PDF text extracted, length:', extractedText.length)
+    } else if (fileType.startsWith('image/')) {
+      // Prepare image for Gemini Vision API
+      console.log('Processing image for Vision API...')
+      fileAnalysisResult = {
+        type: 'image',
+        base64: imageToBase64(file.buffer),
+        mimeType: file.mimetype
+      }
+      
+      enhancedQuery = query || 'Please analyze this medical report/test result image and explain it in simple, easy-to-understand terms.'
+      console.log('Image prepared for Vision API')
+    }
+  }
 
   console.log('Processing query for user:', userId || 'anonymous')
-  console.log('Query text:', query)
+  console.log('Query text:', enhancedQuery.substring(0, 200))
   console.log('Category:', category)
 
   const startTime = Date.now()
@@ -130,7 +186,22 @@ export const processQuery = asyncHandler(async (req, res) => {
     console.log('Creating Gemini service...')
     const geminiService = getGeminiService()
     console.log('Processing query with Gemini...')
-    const aiResponse = await geminiService.processQuery(query, category)
+    
+    let aiResponse
+    
+    // Use Vision API for images
+    if (fileAnalysisResult && fileAnalysisResult.type === 'image') {
+      console.log('Using Gemini Vision API for image analysis...')
+      aiResponse = await geminiService.processImageQuery(
+        enhancedQuery, 
+        fileAnalysisResult.base64, 
+        fileAnalysisResult.mimeType
+      )
+    } else {
+      // Use regular text API for text and PDF
+      aiResponse = await geminiService.processQuery(enhancedQuery, category)
+    }
+    
     console.log('Gemini response received:', aiResponse ? 'YES' : 'NO')
     
     const responseTime = Date.now() - startTime
@@ -163,7 +234,7 @@ export const processQuery = asyncHandler(async (req, res) => {
     const historyEntry = new History({
       userId,
       category,
-      userQuery: query,
+      userQuery: query || 'Medical report analysis',
       assistantSummary: aiResponse.answer_text.length > 2000 
         ? aiResponse.answer_text.substring(0, 1997) + '...'
         : aiResponse.answer_text,
@@ -173,11 +244,17 @@ export const processQuery = asyncHandler(async (req, res) => {
         difficulty: aiResponse.difficulty || 'medium',
         safety_warnings: aiResponse.safety_warnings || [],
         suggest_professional: aiResponse.suggest_professional || false,
-        confidence_score: aiResponse.confidence_score || 0.7
+        confidence_score: aiResponse.confidence_score || 0.7,
+        key_findings: aiResponse.key_findings || [],
+        medical_terms_explained: aiResponse.medical_terms_explained || [],
+        recommendations: aiResponse.recommendations || []
       },
       metadata: {
         responseTime,
-        modelVersion: 'gemini-pro'
+        modelUsed: 'gemini-1.5-flash',
+        hasFile: !!file,
+        fileType: file ? file.mimetype : null,
+        fileName: file ? file.originalname : null
       }
     })
 

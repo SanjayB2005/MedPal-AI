@@ -9,6 +9,7 @@ class GeminiService {
     }
     
     this.genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY)
+    this.GoogleGenerativeAI = GoogleGenerativeAI // Store the class for creating new instances
     
     // Initialize with a model that should work
     // Note: We'll handle the actual model setup in processQuery
@@ -33,6 +34,102 @@ class GeminiService {
         threshold: 'BLOCK_MEDIUM_AND_ABOVE',
       },
     ]
+  }
+
+  /**
+   * Process image query with Gemini Vision API
+   */
+  async processImageQuery(userQuery, base64Image, mimeType) {
+    try {
+      console.log('Processing image with Gemini Vision API...')
+      
+      // Use the same models that work for text - they also support vision!
+      const modelNames = [
+        'gemini-2.5-flash',
+        'gemini-2.0-flash',
+        'gemini-2.0-flash-001',
+        'gemini-2.5-pro',
+        'gemini-2.0-flash-lite'
+      ]
+      
+      let lastError = null
+      
+      for (const modelName of modelNames) {
+        try {
+          console.log(`Trying vision model: ${modelName}`)
+          
+          const model = this.genAI.getGenerativeModel({ 
+            model: modelName,
+            safetySettings: this.safetySettings,
+          })
+          
+          const medicalPrompt = `You are a helpful medical assistant. Analyze the medical report in the image and provide a SHORT, DIRECT explanation.
+
+User's Question: ${userQuery}
+
+IMPORTANT FORMATTING RULES:
+- Keep response under 300 words
+- Use bullet points and short paragraphs
+- Start with the MAIN FINDING immediately
+- Use emojis for better readability
+- Skip lengthy explanations - be concise and direct
+- DO NOT use ** or markdown bold syntax - just use plain text with emojis
+
+STRUCTURE:
+📊 Main Findings:
+[List 2-3 key abnormal results in ONE line each]
+
+💡 What This Means:
+[1-2 sentences explaining in simple terms]
+
+⚠️ Next Steps:
+[2-3 short action items]
+
+🏥 Disclaimer: This is AI analysis only - consult your doctor for professional medical advice.
+
+Keep it short, clear, and visually appealing!`
+
+          const imagePart = {
+            inlineData: {
+              mimeType,
+              data: base64Image
+            }
+          }
+
+          const result = await model.generateContent([medicalPrompt, imagePart])
+          const response = await result.response
+          const responseText = response.text()
+          
+          console.log(`✅ Successfully used vision model: ${modelName}`)
+          console.log('Vision API response received, length:', responseText.length)
+          
+          // Return structured format for medical reports
+          return {
+            answer_text: responseText,
+            steps: [],
+            difficulty: 'medium',
+            safety_warnings: ['⚠️ This is AI analysis only. Always consult your doctor for professional medical advice.'],
+            suggest_professional: true,
+            confidence_score: 0.75,
+            key_findings: [],
+            medical_terms_explained: [],
+            recommendations: ['Please consult with your healthcare provider to discuss these results']
+          }
+          
+        } catch (error) {
+          console.log(`❌ Failed with model ${modelName}:`, error.message)
+          lastError = error
+          continue
+        }
+      }
+      
+      // If all models failed, throw the last error
+      throw lastError || new Error('No vision models available')
+      
+    } catch (error) {
+      console.error('Error processing image query:', error)
+      throw this.handleGeminiError(error)
+    }
   }
 
   /**

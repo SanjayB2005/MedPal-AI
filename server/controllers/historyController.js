@@ -140,8 +140,9 @@ export const toggleFavorite = asyncHandler(async (req, res) => {
   await historyItem.toggleFavorite()
 
   res.json({
-    message: `History item ${historyItem.favorite ? 'added to' : 'removed from'} favorites`,
-    favorite: historyItem.favorite
+    message: `History item ${historyItem.isBookmarked ? 'added to' : 'removed from'} favorites`,
+    isBookmarked: historyItem.isBookmarked,
+    favorite: historyItem.isBookmarked
   })
 })
 
