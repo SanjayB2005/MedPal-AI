@@ -5,8 +5,7 @@ import { knowledgeBase } from './knowledgeBase.js'
 class GeminiService {
   constructor() {
     if (!process.env.GEMINI_API_KEY) {
-      console.error('❌ GEMINI_API_KEY environment variable is not set')
-      throw new Error('AI service is not configured. Please contact the administrator.')
+      throw new Error('GEMINI_API_KEY environment variable is required')
     }
     
     this.genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY)
@@ -44,13 +43,13 @@ class GeminiService {
     try {
       console.log('Processing image with Gemini Vision API...')
       
-      // Use the same models that work for text - they also support vision!
+      // Use actual available Gemini models (verified December 2025)
       const modelNames = [
         'gemini-2.5-flash',
+        'gemini-flash-latest',
         'gemini-2.0-flash',
-        'gemini-2.0-flash-001',
         'gemini-2.5-pro',
-        'gemini-2.0-flash-lite'
+        'gemini-pro-latest'
       ]
       
       let lastError = null
@@ -201,13 +200,13 @@ Keep it short, clear, and visually appealing!`
    * Generate response with exponential backoff retry
    */
   async generateWithRetry(prompt, maxRetries = 3) {
-    // Use the current available model names from Google AI (December 2025)
+    // Use actual available Gemini models (verified December 2025)
     const modelNames = [
       'gemini-2.5-flash',
+      'gemini-flash-latest',
       'gemini-2.0-flash',
-      'gemini-2.0-flash-001',
       'gemini-2.5-pro',
-      'gemini-2.0-flash-lite'
+      'gemini-pro-latest'
     ];
     
     for (const modelName of modelNames) {
@@ -368,19 +367,30 @@ Keep it short, clear, and visually appealing!`
    * Handle Gemini-specific errors
    */
   handleGeminiError(error) {
+    console.error('Gemini Service Error Details:', {
+      message: error.message,
+      status: error.status,
+      statusText: error.statusText,
+      stack: error.stack?.substring(0, 200)
+    })
+    
     if (error.message?.includes('429')) {
       return new Error('AI service is temporarily busy. Please try again in a moment.')
     }
     
-    if (error.message?.includes('quota')) {
+    if (error.message?.includes('quota') || error.message?.includes('RESOURCE_EXHAUSTED')) {
       return new Error('AI service quota exceeded. Please try again later.')
     }
     
     if (error.message?.includes('safety')) {
       return new Error('Query was blocked for safety reasons. Please rephrase your question.')
     }
+    
+    if (error.message?.includes('API key')) {
+      return new Error('AI service authentication error. Please contact administrator.')
+    }
 
-    return new Error('AI service temporarily unavailable. Please try again.')
+    return new Error(`AI service error: ${error.message || 'Unknown error'}`)
   }
 }
 

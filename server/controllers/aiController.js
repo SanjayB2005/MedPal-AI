@@ -371,14 +371,39 @@ export const processQuery = asyncHandler(async (req, res) => {
 
   } catch (error) {
     console.error('AI query processing error:', error)
+    console.error('Error details:', {
+      message: error.message,
+      stack: error.stack?.substring(0, 300),
+      name: error.name
+    })
     
-    // If it's a Gemini-specific error, pass it through
-    if (error.message.includes('AI service') || error.message.includes('quota') || error.message.includes('429')) {
-      throw error
+    // If it's a Gemini-specific error, pass it through with proper status
+    if (error.message.includes('quota') || error.message.includes('RESOURCE_EXHAUSTED')) {
+      return res.status(429).json({ 
+        error: error.message,
+        code: 'QUOTA_EXCEEDED'
+      })
+    }
+    
+    if (error.message.includes('API key') || error.message.includes('authentication')) {
+      return res.status(503).json({ 
+        error: error.message,
+        code: 'AUTH_ERROR'
+      })
+    }
+    
+    if (error.message.includes('AI service') || error.message.includes('429')) {
+      return res.status(503).json({ 
+        error: error.message,
+        code: 'SERVICE_ERROR'
+      })
     }
     
     // Generic fallback for other errors
-    throw new APIError('Unable to process your query right now. Please try again.', 503)
+    return res.status(500).json({ 
+      error: error.message || 'Unable to process your query right now. Please try again.',
+      code: 'INTERNAL_ERROR'
+    })
   }
 })
 
