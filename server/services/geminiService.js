@@ -5,7 +5,8 @@ import { knowledgeBase } from './knowledgeBase.js'
 class GeminiService {
   constructor() {
     if (!process.env.GEMINI_API_KEY) {
-      throw new Error('GEMINI_API_KEY environment variable is required')
+      console.error('❌ GEMINI_API_KEY environment variable is not set')
+      throw new Error('AI service is not configured. Please contact the administrator.')
     }
     
     this.genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY)

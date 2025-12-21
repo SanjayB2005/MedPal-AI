@@ -255,6 +255,16 @@ export const processQuery = asyncHandler(async (req, res) => {
 
   try {
     console.log('Creating Gemini service...')
+    console.log('GEMINI_API_KEY exists:', !!process.env.GEMINI_API_KEY)
+    
+    if (!process.env.GEMINI_API_KEY) {
+      console.error('❌ GEMINI_API_KEY not configured in environment variables')
+      return res.status(503).json({ 
+        error: 'AI service is temporarily unavailable. Please contact support.',
+        code: 'SERVICE_UNAVAILABLE'
+      })
+    }
+    
     const geminiService = getGeminiService()
     console.log('Processing query with Gemini...')
     
