@@ -8,6 +8,9 @@ import authRoutes from '../routes/auth.js'
 import userRoutes from '../routes/user.js'
 import aiRoutes from '../routes/ai.js'
 import historyRoutes from '../routes/history.js'
+import reminderRoutes from '../routes/reminders.js'
+import medicalRecordRoutes from '../routes/medicalRecords.js'
+import notificationRoutes from '../routes/notifications.js'
 import { connectDB } from '../utils/database.js'
 import { errorHandler } from '../middleware/errorHandler.js'
 
@@ -52,6 +55,9 @@ app.use('/api/auth', authRoutes)
 app.use('/api/user', userRoutes)
 app.use('/api/ai', aiRoutes)
 app.use('/api/history', historyRoutes)
+app.use('/api/reminders', reminderRoutes)
+app.use('/api/medical-records', medicalRecordRoutes)
+app.use('/api/notifications', notificationRoutes)
 
 // Error handlers
 app.use((req, res) => {
