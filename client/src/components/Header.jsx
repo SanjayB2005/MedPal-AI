@@ -37,11 +37,11 @@ const Header = ({ showAuth = true, showNavigation = false }) => {
           {/* Left side - Logo and Title */}
           <div className="flex items-center space-x-4">
             <Link to={user ? "/dashboard" : "/"} className="flex items-center space-x-3">
-              <div className="p-2 bg-gradient-to-br from-blue-500 to-purple-600 rounded-xl text-white shadow-lg">
+              <div className="p-2 bg-linear-to-br from-blue-500 to-purple-600 rounded-xl text-white shadow-lg">
                 <SparklesIcon className="h-6 w-6" />
               </div>
               <div>
-                <h1 className="text-xl font-bold bg-gradient-to-r from-gray-900 to-gray-600 bg-clip-text text-transparent">
+                <h1 className="text-xl font-bold bg-linear-to-r from-gray-900 to-gray-600 bg-clip-text text-transparent">
                   Med Pal
                 </h1>
                 {user && location.pathname !== '/' && (
@@ -103,7 +103,7 @@ const Header = ({ showAuth = true, showNavigation = false }) => {
                       onClick={() => setShowUserMenu(!showUserMenu)}
                       className="flex items-center space-x-3 p-2 rounded-lg hover:bg-gray-100 transition-all"
                     >
-                      <div className="h-8 w-8 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center shadow-md">
+                      <div className="h-8 w-8 bg-linear-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center shadow-md">
                         <span className="text-white text-sm font-bold">
                           {user?.name?.charAt(0).toUpperCase() || 'U'}
                         </span>
@@ -158,7 +158,7 @@ const Header = ({ showAuth = true, showNavigation = false }) => {
                   </Link>
                   <Link
                     to="/register"
-                    className="bg-gradient-to-r from-blue-500 to-purple-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:shadow-md transition-all"
+                    className="bg-linear-to-r from-blue-500 to-purple-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:shadow-md transition-all"
                   >
                     Get Started
                   </Link>

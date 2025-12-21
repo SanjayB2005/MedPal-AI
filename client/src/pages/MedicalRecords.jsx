@@ -156,7 +156,7 @@ const MedicalRecords = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-purple-50 p-6">
+    <div className="min-h-screen bg-linear-to-br from-blue-50 to-purple-50 p-6">
       <div className="max-w-7xl mx-auto">
         {/* Header */}
         <div className="mb-8">
@@ -246,7 +246,7 @@ const MedicalRecords = () => {
 
             <button
               onClick={() => setShowUploadModal(true)}
-              className="bg-gradient-to-r from-blue-500 to-purple-600 text-white px-6 py-2 rounded-lg hover:shadow-lg transition-all flex items-center gap-2"
+              className="bg-linear-to-r from-blue-500 to-purple-600 text-white px-6 py-2 rounded-lg hover:shadow-lg transition-all flex items-center gap-2"
             >
               <CloudArrowUpIcon className="h-5 w-5" />
               Upload Record
@@ -277,7 +277,7 @@ const MedicalRecords = () => {
               const typeInfo = recordTypes.find(t => t.value === record.recordType)
               return (
                 <div key={record._id} className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden hover:shadow-md transition-shadow">
-                  <div className={`h-48 bg-gradient-to-br from-${typeInfo?.color}-100 to-${typeInfo?.color}-200 flex items-center justify-center relative`}>
+                  <div className={`h-48 bg-linear-to-br from-${typeInfo?.color}-100 to-${typeInfo?.color}-200 flex items-center justify-center relative`}>
                     {record.fileType.startsWith('image/') ? (
                       <img src={record.fileUrl} alt={record.title} className="w-full h-full object-cover" />
                     ) : (
@@ -336,7 +336,7 @@ const MedicalRecords = () => {
 
         {/* Upload Modal */}
         {showUploadModal && (
-          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+          <div className="fixed inset-0  bg-opacity-50 flex items-center justify-center p-4 z-50">
             <div className="bg-white rounded-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
               <div className="p-6 border-b border-gray-200">
                 <div className="flex items-center justify-between">
@@ -488,7 +488,7 @@ const MedicalRecords = () => {
                   <button
                     type="submit"
                     disabled={!selectedFile || !formData.title || uploading}
-                    className="flex-1 bg-gradient-to-r from-blue-500 to-purple-600 text-white px-6 py-3 rounded-lg hover:shadow-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="flex-1 bg-linear-to-r from-blue-500 to-purple-600 text-white px-6 py-3 rounded-lg hover:shadow-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     {uploading ? 'Uploading...' : 'Upload Record'}
                   </button>

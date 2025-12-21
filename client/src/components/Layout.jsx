@@ -54,17 +54,17 @@ const Layout = () => {
   const isActive = (path) => location.pathname === path
 
   return (
-    <div className="flex h-screen bg-gradient-to-br from-gray-50 via-blue-50 to-indigo-50">
+    <div className="flex h-screen bg-linear-to-brrom-gray-50 via-blue-50 to-indigo-50">
       {/* Enhanced Mobile sidebar */}
       <div className={`fixed inset-0 z-40 lg:hidden ${sidebarOpen ? 'block' : 'hidden'}`}>
         <div className="fixed inset-0 bg-gray-900 bg-opacity-50 backdrop-blur-sm" onClick={() => setSidebarOpen(false)} />
         <div className="fixed inset-y-0 left-0 flex w-72 flex-col bg-white/95 backdrop-blur-xl border-r border-gray-200/50 shadow-2xl">
           <div className="flex h-16 items-center justify-between px-6 border-b border-gray-200/50">
             <div className="flex items-center gap-2">
-              <div className="p-2 bg-gradient-to-br from-blue-500 to-purple-600 rounded-xl text-white shadow-lg">
+              <div className="p-2 bg-linear-to-br from-blue-500 to-purple-600 rounded-xl text-white shadow-lg">
                 <SparklesIcon className="h-5 w-5" />
               </div>
-              <h1 className="text-xl font-bold bg-gradient-to-r from-gray-900 to-gray-600 bg-clip-text text-transparent">Home Assistant</h1>
+              <h1 className="text-xl font-bold bg-linear-to-r from-gray-900 to-gray-600 bg-clip-text text-transparent">Home Assistant</h1>
             </div>
             <button
               onClick={() => setSidebarOpen(false)}
@@ -84,11 +84,11 @@ const Layout = () => {
                   onClick={() => setSidebarOpen(false)}
                   className={`group flex items-center p-3 text-sm font-medium rounded-xl transition-all duration-200 ${
                     active
-                      ? 'bg-gradient-to-r from-blue-500 to-purple-600 text-white shadow-lg'
+                      ? 'bg-linear-to-r from-blue-500 to-purple-600 text-white shadow-lg'
                       : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900'
                   }`}
                 >
-                  <Icon className="mr-3 h-5 w-5 flex-shrink-0" />
+                  <Icon className="mr-3 h-5 w-5 shrink-0" />
                   <div className="flex-1">
                     <div className="font-semibold">{item.name}</div>
                     <div className={`text-xs mt-0.5 ${active ? 'text-blue-100' : 'text-gray-500'}`}>
@@ -115,14 +115,14 @@ const Layout = () => {
                   to={item.href}
                   className={`group flex items-center p-4 text-sm font-medium rounded-xl transition-all duration-200 transform hover:scale-[1.02] ${
                     active
-                      ? 'bg-gradient-to-r from-blue-500 to-purple-600 text-white shadow-lg'
+                      ? 'bg-linear-to-r from-blue-500 to-purple-600 text-white shadow-lg'
                       : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900 hover:shadow-md'
                   }`}
                 >
                   <div className={`p-2 rounded-lg mr-4 transition-all ${
                     active ? 'bg-white/20' : 'bg-gray-100 group-hover:bg-gray-200'
                   }`}>
-                    <Icon className="h-5 w-5 flex-shrink-0" />
+                    <Icon className="h-5 w-5 shrink-0" />
                   </div>
                   <div className="flex-1">
                     <div className="font-semibold">{item.name}</div>
@@ -135,10 +135,10 @@ const Layout = () => {
             })}
           </nav>
           
-          <div className="flex-shrink-0 border-t border-gray-200/50 p-6">
-            <div className="flex items-center p-3 bg-gradient-to-r from-gray-50 to-blue-50 rounded-xl border border-gray-200/50">
-              <div className="flex-shrink-0">
-                <div className="h-10 w-10 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center shadow-lg">
+          <div className="shrink-0 border-t border-gray-200/50 p-6">
+            <div className="flex items-center p-3 bg-linear-to-r from-gray-50 to-blue-50 rounded-xl border border-gray-200/50">
+              <div className="shrink-0">
+                <div className="h-10 w-10 bg-linear-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center shadow-lg">
                   <span className="text-white text-sm font-bold">
                     {user?.name?.charAt(0).toUpperCase() || 'U'}
                   </span>

@@ -10,9 +10,17 @@ import {
   TrashIcon,
   BeakerIcon,
   HomeIcon,
-  CalendarIcon
+  CalendarIcon,
+  BellAlertIcon
 } from '@heroicons/react/24/outline'
 import { BellIcon as BellSolidIcon } from '@heroicons/react/24/solid'
+import { 
+  subscribeToPushNotifications, 
+  unsubscribeFromPushNotifications,
+  isSubscribedToPushNotifications,
+  sendTestNotification,
+  isNotificationSupported
+} from '../utils/notifications'
 
 const Reminders = () => {
   const [reminders, setReminders] = useState([])
@@ -22,6 +30,8 @@ const Reminders = () => {
   const [filterStatus, setFilterStatus] = useState('all')
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState(null)
+  const [notificationsEnabled, setNotificationsEnabled] = useState(false)
+  const [checkingNotifications, setCheckingNotifications] = useState(true)
   const [stats, setStats] = useState({
     totalActive: 0,
     totalCompleted: 0,
@@ -89,7 +99,86 @@ const Reminders = () => {
   useEffect(() => {
     fetchReminders()
     fetchStats()
+    checkNotificationStatus()
   }, [filterType, filterStatus])
+
+  // Check notification status
+  const checkNotificationStatus = async () => {
+    try {
+      setCheckingNotifications(true)
+      
+      // Check if notifications are supported
+      if (!isNotificationSupported()) {
+        setNotificationsEnabled(false)
+        setCheckingNotifications(false)
+        return
+      }
+      
+      // Check if already subscribed
+      const isSubscribed = await isSubscribedToPushNotifications()
+      setNotificationsEnabled(isSubscribed)
+    } catch (error) {
+      console.error('Failed to check notification status:', error)
+      setNotificationsEnabled(false)
+    } finally {
+      setCheckingNotifications(false)
+    }
+  }
+
+  // Enable notifications
+  const handleEnableNotifications = async () => {
+    setCheckingNotifications(true)
+    
+    try {
+      // Add overall timeout for the entire process
+      const timeout = new Promise((_, reject) => 
+        setTimeout(() => reject(new Error('Operation timed out after 30 seconds')), 30000)
+      )
+      
+      const subscribePromise = subscribeToPushNotifications()
+      const result = await Promise.race([subscribePromise, timeout])
+      
+      if (result.success) {
+        setNotificationsEnabled(true)
+        alert('✅ ' + result.message)
+      } else {
+        alert('❌ ' + result.message)
+      }
+    } catch (error) {
+      console.error('Failed to enable notifications:', error)
+      
+      if (error.message.includes('timed out')) {
+        alert('❌ Request timed out. Please check your internet connection and try again.')
+      } else {
+        alert('❌ Failed to enable notifications. Please try again.')
+      }
+    } finally {
+      setCheckingNotifications(false)
+    }
+  }
+
+  // Disable notifications
+  const handleDisableNotifications = async () => {
+    try {
+      await unsubscribeFromPushNotifications()
+      setNotificationsEnabled(false)
+      alert('Notifications disabled')
+    } catch (error) {
+      console.error('Failed to disable notifications:', error)
+      alert('Failed to disable notifications')
+    }
+  }
+
+  // Send test notification
+  const handleTestNotification = async () => {
+    try {
+      await sendTestNotification()
+      alert('✅ Test notification sent! Check your notifications.')
+    } catch (error) {
+      console.error('Failed to send test notification:', error)
+      alert('❌ Failed to send test notification')
+    }
+  }
 
   const handleAddReminder = async () => {
     if (!formData.title || !formData.time) {
@@ -222,7 +311,7 @@ const Reminders = () => {
       <div className="mb-8">
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center gap-3">
-            <div className="p-3 bg-gradient-to-br from-blue-500 to-purple-600 rounded-2xl text-white shadow-lg">
+            <div className="p-3 bg-linear-to-br from-blue-500 to-purple-600 rounded-2xl text-white shadow-lg">
               <BellSolidIcon className="h-8 w-8" />
             </div>
             <div>
@@ -245,7 +334,7 @@ const Reminders = () => {
 
         {/* Stats */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-6">
-          <div className="card bg-gradient-to-br from-blue-50 to-blue-100 border-blue-200">
+          <div className="card bg-linear-to-br from-blue-50 to-blue-100 border-blue-200">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-blue-600 font-medium">Total Active</p>
@@ -254,7 +343,7 @@ const Reminders = () => {
               <BellSolidIcon className="h-12 w-12 text-blue-400" />
             </div>
           </div>
-          <div className="card bg-gradient-to-br from-green-50 to-green-100 border-green-200">
+          <div className="card bg-linear-to-br from-green-50 to-green-100 border-green-200">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-green-600 font-medium">Completed Today</p>
@@ -263,7 +352,7 @@ const Reminders = () => {
               <CheckCircleIcon className="h-12 w-12 text-green-400" />
             </div>
           </div>
-          <div className="card bg-gradient-to-br from-orange-50 to-orange-100 border-orange-200">
+          <div className="card bg-linear-to-br from-orange-50 to-orange-100 border-orange-200">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-orange-600 font-medium">Pending Today</p>
@@ -274,6 +363,57 @@ const Reminders = () => {
           </div>
         </div>
       </div>
+
+      {/* Notification Banner */}
+      {isNotificationSupported() && (
+        <div className={`mb-6 p-4 rounded-xl border ${
+          notificationsEnabled 
+            ? 'bg-green-50 border-green-200' 
+            : 'bg-yellow-50 border-yellow-200'
+        }`}>
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <BellAlertIcon className={`h-6 w-6 ${
+                notificationsEnabled ? 'text-green-600' : 'text-yellow-600'
+              }`} />
+              <div>
+                <h3 className={`font-semibold ${
+                  notificationsEnabled ? 'text-green-900' : 'text-yellow-900'
+                }`}>
+                  {notificationsEnabled 
+                    ? '✅ Notifications Enabled' 
+                    : '🔔 Enable Push Notifications'}
+                </h3>
+                <p className={`text-sm ${
+                  notificationsEnabled ? 'text-green-700' : 'text-yellow-700'
+                }`}>
+                  {notificationsEnabled 
+                    ? 'You will receive reminders at scheduled times, even when the app is closed.' 
+                    : 'Get notified when it\'s time to take your medications or complete tasks.'}
+                </p>
+              </div>
+            </div>
+            <div className="flex gap-2">
+              {notificationsEnabled ? (
+                <button
+                  onClick={handleDisableNotifications}
+                  className="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-colors text-sm"
+                >
+                  Disable
+                </button>
+              ) : (
+                <button
+                  onClick={handleEnableNotifications}
+                  disabled={checkingNotifications}
+                  className="px-4 py-2 bg-yellow-600 text-white rounded-lg hover:bg-yellow-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {checkingNotifications ? 'Checking...' : 'Enable Now'}
+                </button>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Error message */}
       {error && (
@@ -407,7 +547,7 @@ const ReminderCard = ({ reminder, onMarkAsTaken, onSkip, onEdit, onDelete, getTy
   return (
     <div className={`card border-2 ${isCompleted ? 'opacity-60' : ''} ${colorClasses[color].split(' ').slice(1).join(' ')}`}>
       <div className="flex items-start gap-4">
-        <div className={`p-3 rounded-xl bg-gradient-to-br ${colorClasses[color].split(' ')[0]} text-white shadow-md flex-shrink-0`}>
+        <div className={`p-3 rounded-xl bg-linear-to-br ${colorClasses[color].split(' ')[0]} text-white shadow-md shrink-0`}>
           <TypeIcon className="h-6 w-6" />
         </div>
         
@@ -492,7 +632,7 @@ const AddReminderModal = ({ formData, setFormData, onClose, onSave, reminderType
   return (
     <div className="fixed inset-0 z-50 overflow-y-auto">
       <div className="flex items-center justify-center min-h-screen px-4 pt-4 pb-20 text-center sm:p-0">
-        <div className="fixed inset-0 transition-opacity bg-gray-900 bg-opacity-75" onClick={onClose} />
+        <div className="fixed inset-0 transition-opacity  bg-opacity-45" onClick={onClose} />
         
         <div className="relative inline-block w-full max-w-2xl p-6 my-8 overflow-hidden text-left align-middle transition-all transform bg-white shadow-2xl rounded-2xl">
           <div className="flex items-center justify-between mb-6">

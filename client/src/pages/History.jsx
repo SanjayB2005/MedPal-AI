@@ -200,7 +200,7 @@ const History = () => {
           <ol className="space-y-1">
             {item.steps.map((step, index) => (
               <li key={index} className="text-sm text-neutral-700 flex items-start">
-                <span className="inline-flex items-center justify-center w-5 h-5 bg-primary-100 text-primary-700 rounded-full text-xs font-medium mr-2 flex-shrink-0 mt-0.5">
+                <span className="inline-flex items-center justify-center w-5 h-5 bg-primary-100 text-primary-700 rounded-full text-xs font-medium mr-2 shrink-0 mt-0.5">
                   {index + 1}
                 </span>
                 {step}

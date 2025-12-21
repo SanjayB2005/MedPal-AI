@@ -13,6 +13,10 @@ import aiRoutes from './routes/ai.js'
 import historyRoutes from './routes/history.js'
 import reminderRoutes from './routes/reminders.js'
 import medicalRecordRoutes from './routes/medicalRecords.js'
+import notificationRoutes from './routes/notifications.js'
+
+// Import services
+import { startReminderCron } from './services/reminderService.js'
 
 // Load environment variables
 dotenv.config()
@@ -34,7 +38,10 @@ process.on('uncaughtException', (error) => {
 
 // Connect to MongoDB (non-blocking for Vercel)
 if (process.env.MONGODB_URI) {
-  connectDB().catch(err => {
+  connectDB().then(() => {
+    // Start reminder cron job after DB connection
+    startReminderCron()
+  }).catch(err => {
     console.error('Failed to connect to MongoDB:', err)
   })
 }
@@ -62,6 +69,7 @@ app.use('/api/ai', aiRoutes)
 app.use('/api/history', historyRoutes)
 app.use('/api/reminders', reminderRoutes)
 app.use('/api/medical-records', medicalRecordRoutes)
+app.use('/api/notifications', notificationRoutes)
 
 // 404 handler - must be after all other routes
 app.use((req, res) => {

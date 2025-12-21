@@ -298,7 +298,7 @@ const Dashboard = () => {
               <ol className="space-y-2">
                 {message.steps.map((step, index) => (
                   <li key={index} className="flex items-start">
-                    <span className="inline-flex items-center justify-center w-6 h-6 bg-primary-100 text-primary-700 rounded-full text-sm font-medium mr-3 flex-shrink-0 mt-0.5">
+                    <span className="inline-flex items-center justify-center w-6 h-6 bg-primary-100 text-primary-700 rounded-full text-sm font-medium mr-3 shrink-0 mt-0.5">
                       {index + 1}
                     </span>
                     <span className="text-neutral-700">{step}</span>
@@ -391,7 +391,7 @@ const Dashboard = () => {
   }
 
   return (
-    <div className="h-full flex flex-col lg:flex-row bg-gradient-to-br from-gray-50 to-blue-50">
+    <div className="h-full flex flex-col lg:flex-row bg-linear-to-br from-gray-50 to-blue-50">
       {/* Enhanced Category Sidebar */}
       
 
@@ -404,16 +404,16 @@ const Dashboard = () => {
               <div className="text-center max-w-2xl mx-auto">
                 <div className="relative mb-8">
                   <div className="absolute inset-0 flex items-center justify-center">
-                    <div className="w-32 h-32 bg-gradient-to-br from-blue-400 to-purple-600 rounded-full opacity-20 animate-pulse"></div>
+                    <div className="w-32 h-32 bg-linear-to-br from-blue-400 to-purple-600 rounded-full opacity-20 animate-pulse"></div>
                   </div>
                   <div className="relative flex items-center justify-center">
-                    <div className="p-6 bg-gradient-to-br from-blue-500 to-purple-600 rounded-3xl text-white shadow-2xl">
+                    <div className="p-6 bg-linear-to-br from-blue-500 to-purple-600 rounded-3xl text-white shadow-2xl">
                       <SparklesIcon className="h-12 w-12 mx-auto" />
                     </div>
                   </div>
                 </div>
                 
-                <h2 className="text-4xl font-bold bg-gradient-to-r from-gray-900 to-gray-600 bg-clip-text text-transparent mb-4">
+                <h2 className="text-4xl font-bold bg-linear-to-r from-gray-900 to-gray-600 bg-clip-text text-transparent mb-4">
                   👋 Welcome to your Med Pal!
                 </h2>
                 
@@ -421,7 +421,7 @@ const Dashboard = () => {
                 {!user && (
                   <div className="mb-6 p-4 bg-amber-50 border border-amber-200 rounded-xl">
                     <div className="flex items-start gap-3">
-                      <UserIcon className="h-6 w-6 text-amber-600 mt-1 flex-shrink-0" />
+                      <UserIcon className="h-6 w-6 text-amber-600 mt-1 shrink-0" />
                       <div>
                         <h4 className="font-semibold text-amber-800 mb-1">Save Your Conversation History</h4>
                         <p className="text-sm text-amber-700 mb-3">
@@ -449,7 +449,7 @@ const Dashboard = () => {
                 </p>
                 
                 {/* Medical Report Upload Feature Highlight */}
-                <div className="mb-8 p-6 bg-gradient-to-r from-blue-50 to-purple-50 rounded-2xl border-2 border-blue-200">
+                <div className="mb-8 p-6 bg-linear-to-r from-blue-50 to-purple-50 rounded-2xl border-2 border-blue-200">
                   <div className="flex items-start gap-4">
                     <div className="p-3 bg-blue-100 rounded-xl">
                       <PhotoIcon className="h-8 w-8 text-blue-600" />
@@ -602,7 +602,7 @@ const Dashboard = () => {
                 <button
                   type="submit"
                   disabled={(!inputMessage.trim() && !selectedFile) || isLoading}
-                  className={`p-4 bg-gradient-to-r from-blue-500 to-purple-600 text-white rounded-2xl shadow-lg hover:shadow-xl transform transition-all duration-200 flex items-center justify-center min-w-[60px] ${
+                  className={`p-4 bg-linear-to-r from-blue-500 to-purple-600 text-white rounded-2xl shadow-lg hover:shadow-xl transform transition-all duration-200 flex items-center justify-center min-w-[60px] ${
                     ((!inputMessage.trim() && !selectedFile) || isLoading) ? 'opacity-50 cursor-not-allowed hover:shadow-lg hover:transform-none' : 'hover:scale-105'
                   }`}
                 >
