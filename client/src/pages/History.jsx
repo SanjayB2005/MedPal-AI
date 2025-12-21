@@ -22,15 +22,27 @@ const History = () => {
     try {
       setIsLoading(true)
       setError(null)
-      const response = await historyAPI.getHistory({
+      
+      // Build query params
+      const params = {
         page: 1,
-        limit: 50,
-        category: filterCategory !== 'all' ? filterCategory : undefined,
-        search: searchQuery || undefined
-      })
+        limit: 50
+      }
+      
+      // Add search if provided
+      if (searchQuery && searchQuery.trim()) {
+        params.search = searchQuery.trim()
+      }
+      
+      // Only add category if it's not 'all' or 'favorites'
+      if (filterCategory && filterCategory !== 'all' && filterCategory !== 'favorites') {
+        params.category = filterCategory
+      }
+      
+      const response = await historyAPI.getHistory(params)
       
       // Transform the response data to match the expected format
-      const transformedHistory = response.history.map(item => ({
+      let transformedHistory = response.history.map(item => ({
         id: item._id,
         category: item.category,
         userQuery: item.userQuery,
@@ -43,6 +55,11 @@ const History = () => {
         disclaimer: item.category === 'pharmacy',
         safetyWarnings: item.structuredResponse?.safety_warnings || []
       }))
+      
+      // Client-side filter for favorites
+      if (filterCategory === 'favorites') {
+        transformedHistory = transformedHistory.filter(item => item.favorite)
+      }
       
       setHistory(transformedHistory)
     } catch (error) {
@@ -61,9 +78,7 @@ const History = () => {
   // Debounced search effect
   useEffect(() => {
     const delayedSearch = setTimeout(() => {
-      if (searchQuery !== '' || filterCategory !== 'all') {
-        fetchHistory()
-      }
+      fetchHistory()
     }, 500)
 
     return () => clearTimeout(delayedSearch)
@@ -71,10 +86,13 @@ const History = () => {
 
   const categories = [
     { id: 'all', name: 'All Categories' },
+    { id: 'favorites', name: '⭐ Favorites' },
+    { id: 'general', name: '🌐 General' },
     { id: 'cooking', name: '🍳 Cooking' },
     { id: 'pharmacy', name: '💊 Pharmacy' },
     { id: 'electrical', name: '⚡ Electrical' },
-    { id: 'household', name: '🏠 Household' }
+    { id: 'household', name: '🏠 Household' },
+ 
   ]
 
   // Use the history data directly since filtering is done on the server
@@ -277,12 +295,18 @@ const History = () => {
           <div className="text-center py-12">
             <ChatBubbleLeftIcon className="h-12 w-12 text-neutral-400 mx-auto mb-4" />
             <h3 className="text-lg font-medium text-neutral-900 mb-2">
-              {searchQuery || filterCategory !== 'all' ? 'No matching results' : 'No history yet'}
+              {filterCategory === 'favorites' 
+                ? 'No favorites yet' 
+                : searchQuery || filterCategory !== 'all' 
+                  ? 'No matching results' 
+                  : 'No history yet'}
             </h3>
             <p className="text-neutral-600">
-              {searchQuery || filterCategory !== 'all' 
-                ? 'Try adjusting your search or filters'
-                : 'Start asking questions to build your history'}
+              {filterCategory === 'favorites'
+                ? 'Star your important conversations to find them here'
+                : searchQuery || filterCategory !== 'all' 
+                  ? 'Try adjusting your search or filters'
+                  : 'Start asking questions to build your history'}
             </p>
           </div>
         ) : (

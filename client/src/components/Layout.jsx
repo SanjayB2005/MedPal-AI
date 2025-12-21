@@ -20,31 +20,31 @@ const Layout = () => {
 
   const navigation = [
     { 
-      name: '🏠 Dashboard', 
+      name: 'Dashboard', 
       href: '/dashboard', 
       icon: HomeIcon,
       description: 'Chat with AI assistant'
     },
     { 
-      name: '� Reminders', 
+      name: 'Reminders', 
       href: '/reminders', 
       icon: BellIcon,
       description: 'Medication & task reminders'
     },
     { 
-      name: '📝 History', 
+      name: 'History', 
       href: '/history', 
       icon: ClockIcon,
       description: 'View past conversations'
     },
     { 
-      name: '� Medical Records', 
+      name: 'Medical Records', 
       href: '/medical-records', 
       icon: FolderIcon,
       description: 'Store and manage medical files'
     },
     { 
-      name: '�👤 Profile', 
+      name: 'Profile', 
       href: '/profile', 
       icon: UserIcon,
       description: 'Manage your account'

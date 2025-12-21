@@ -41,6 +41,70 @@ const imageToBase64 = (buffer) => {
   return buffer.toString('base64')
 }
 
+// Helper function to auto-detect category from query
+const detectCategory = (query) => {
+  const query_lower = query.toLowerCase()
+  
+  // Cooking keywords
+  const cookingKeywords = [
+    'cook', 'recipe', 'bake', 'fry', 'boil', 'grill', 'roast', 'steam', 'simmer',
+    'ingredients', 'dish', 'meal', 'food', 'kitchen', 'oven', 'stove', 'pan',
+    'pot', 'spice', 'flavor', 'taste', 'sauce', 'soup', 'curry', 'pasta', 'rice',
+    'chicken', 'meat', 'vegetables', 'dessert', 'cake', 'bread', 'tea', 'coffee',
+    'breakfast', 'lunch', 'dinner', 'snack', 'appetizer', 'salad', 'sandwich',
+    'pizza', 'burger', 'noodles', 'biriyani', 'biryani', 'chapati', 'roti'
+  ]
+  
+  // Pharmacy/health keywords
+  const pharmacyKeywords = [
+    'medicine', 'medication', 'drug', 'pill', 'tablet', 'capsule', 'prescription',
+    'pharmacy', 'health', 'symptom', 'pain', 'fever', 'headache', 'cold', 'flu',
+    'cough', 'allergy', 'vitamin', 'supplement', 'antibiotic', 'painkiller',
+    'blood pressure', 'diabetes', 'insulin', 'medical', 'doctor', 'treatment',
+    'dose', 'dosage', 'side effect', 'interaction', 'disease', 'illness'
+  ]
+  
+  // Electrical keywords
+  const electricalKeywords = [
+    'electric', 'electrical', 'electricity', 'power', 'outlet', 'socket', 'plug',
+    'wire', 'wiring', 'circuit', 'breaker', 'fuse', 'switch', 'light', 'bulb',
+    'lamp', 'voltage', 'current', 'shock', 'sparks', 'short circuit', 'electrician',
+    'appliance', 'fan', 'ac', 'air conditioner', 'heater', 'charger', 'battery'
+  ]
+  
+  // Household keywords
+  const householdKeywords = [
+    'clean', 'cleaning', 'wash', 'laundry', 'stain', 'dirt', 'dust', 'mop',
+    'vacuum', 'sweep', 'scrub', 'polish', 'organize', 'storage', 'furniture',
+    'paint', 'repair', 'fix', 'maintain', 'plumbing', 'leak', 'drain', 'pipe',
+    'faucet', 'toilet', 'sink', 'shower', 'door', 'window', 'lock', 'hinge',
+    'wall', 'floor', 'ceiling', 'roof', 'garden', 'yard', 'lawn'
+  ]
+  
+  // Count matches for each category
+  const counts = {
+    cooking: cookingKeywords.filter(kw => query_lower.includes(kw)).length,
+    pharmacy: pharmacyKeywords.filter(kw => query_lower.includes(kw)).length,
+    electrical: electricalKeywords.filter(kw => query_lower.includes(kw)).length,
+    household: householdKeywords.filter(kw => query_lower.includes(kw)).length
+  }
+  
+  // Find category with highest match count
+  const maxCount = Math.max(...Object.values(counts))
+  
+  // If we have at least 1 match, return that category
+  if (maxCount > 0) {
+    for (const [category, count] of Object.entries(counts)) {
+      if (count === maxCount) {
+        return category
+      }
+    }
+  }
+  
+  // Default to general if no strong match
+  return 'general'
+}
+
 // Helper function to detect if user needs professional services or shop recommendations
 const detectProfessionalServiceNeed = (query, category) => {
   const query_lower = query.toLowerCase()
@@ -143,6 +207,13 @@ export const processQuery = asyncHandler(async (req, res) => {
   const userId = req.user ? req.user._id : null
   const file = req.file // File from multer middleware
 
+  // Auto-detect category if it's 'general' and we have a query
+  let detectedCategory = category
+  if (category === 'general' && query && query.trim()) {
+    detectedCategory = detectCategory(query)
+    console.log('Auto-detected category:', detectedCategory)
+  }
+
   let enhancedQuery = query || ''
   let fileAnalysisResult = null
 
@@ -178,7 +249,7 @@ export const processQuery = asyncHandler(async (req, res) => {
 
   console.log('Processing query for user:', userId || 'anonymous')
   console.log('Query text:', enhancedQuery.substring(0, 200))
-  console.log('Category:', category)
+  console.log('Category:', detectedCategory)
 
   const startTime = Date.now()
 
@@ -199,7 +270,7 @@ export const processQuery = asyncHandler(async (req, res) => {
       )
     } else {
       // Use regular text API for text and PDF
-      aiResponse = await geminiService.processQuery(enhancedQuery, category)
+      aiResponse = await geminiService.processQuery(enhancedQuery, detectedCategory)
     }
     
     console.log('Gemini response received:', aiResponse ? 'YES' : 'NO')
@@ -207,7 +278,7 @@ export const processQuery = asyncHandler(async (req, res) => {
     const responseTime = Date.now() - startTime
 
     // Check if user needs professional services or shop recommendations
-    const neededService = detectProfessionalServiceNeed(query, category)
+    const neededService = detectProfessionalServiceNeed(query, detectedCategory)
     if (neededService) {
       aiResponse.suggest_location_search = true
       aiResponse.location_service_type = neededService
@@ -233,7 +304,7 @@ export const processQuery = asyncHandler(async (req, res) => {
     // Save to history - user is guaranteed to exist due to auth middleware
     const historyEntry = new History({
       userId,
-      category,
+      category: detectedCategory,
       userQuery: query || 'Medical report analysis',
       assistantSummary: aiResponse.answer_text.length > 2000 
         ? aiResponse.answer_text.substring(0, 1997) + '...'
