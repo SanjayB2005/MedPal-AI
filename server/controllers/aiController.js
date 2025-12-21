@@ -265,7 +265,18 @@ export const processQuery = asyncHandler(async (req, res) => {
       })
     }
     
-    const geminiService = getGeminiService()
+    let geminiService
+    try {
+      geminiService = getGeminiService()
+    } catch (serviceError) {
+      console.error('Error creating Gemini service:', serviceError.message)
+      return res.status(503).json({ 
+        error: 'AI service configuration error. Please contact support.',
+        code: 'SERVICE_UNAVAILABLE',
+        details: serviceError.message
+      })
+    }
+    
     console.log('Processing query with Gemini...')
     
     let aiResponse

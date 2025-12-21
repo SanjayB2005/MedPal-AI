@@ -217,8 +217,8 @@ const Dashboard = () => {
         // Handle specific error cases
         let errorMessage = "I'm sorry, I'm having trouble connecting right now. Please try again in a moment."
         
-        if (error.response?.status === 503) {
-          errorMessage = "🔧 **Service Temporarily Unavailable**\n\nThe AI service is currently unavailable. This may be due to:\n- Server maintenance\n- Configuration issues\n- High traffic\n\nPlease try again in a few minutes. If the problem persists, contact support."
+        if (error.response?.status === 503 || error.response?.data?.code === 'SERVICE_UNAVAILABLE') {
+          errorMessage = "⚙️ **AI Service Configuration Required**\n\nThe AI assistant requires setup to work properly. Please ensure:\n- GEMINI_API_KEY is configured in server environment\n- All required services are running\n\nContact the administrator if you continue to see this message."
         } else if (error.response?.status === 500) {
           errorMessage = "⚠️ **Server Error**\n\nSomething went wrong on our end. Please try again. If the issue continues, please contact support."
         } else if (error.code === 'ERR_NETWORK' || !error.response) {
