@@ -179,16 +179,30 @@ const Categories = () => {
                       Start Chatting
                       <ArrowRightIcon className="h-4 w-4" />
                     </Link>
-                    {(category.id === 'pharmacy' || category.id === 'electrical') && (
+                    {category.id === 'pharmacy' && (
                       <button 
-                        onClick={() => {
-                          setLocationServiceType(category.id === 'pharmacy' ? 'pharmacy' : 'electrician')
+                        onClick={(e) => {
+                          e.stopPropagation()
+                          setLocationServiceType('pharmacy')
                           setShowLocationSearch(true)
                         }}
                         className={`inline-flex items-center gap-2 px-4 py-3 ${category.bgColor} ${category.textColor} border-2 font-medium rounded-xl hover:shadow-md transition-all duration-200`}
                       >
                         <MapPinIcon className="h-4 w-4" />
-                        Find Local {category.id === 'pharmacy' ? 'Pharmacies' : 'Electricians'}
+                        Find Local Pharmacies
+                      </button>
+                    )}
+                    {category.id === 'electrical' && (
+                      <button 
+                        onClick={(e) => {
+                          e.stopPropagation()
+                          setLocationServiceType('electrician')
+                          setShowLocationSearch(true)
+                        }}
+                        className={`inline-flex items-center gap-2 px-4 py-3 ${category.bgColor} ${category.textColor} border-2 font-medium rounded-xl hover:shadow-md transition-all duration-200`}
+                      >
+                        <MapPinIcon className="h-4 w-4" />
+                        Find Local Electricians
                       </button>
                     )}
                     {category.id !== 'pharmacy' && category.id !== 'electrical' && (

@@ -337,57 +337,12 @@ const Dashboard = () => {
             </div>
           )}
 
-          {/* Professional Recommendation */}
-          {message.suggestProfessional && (
-            <div className="mt-3 bg-accent-50 border border-accent-200 rounded-xl p-4">
-              <h4 className="font-medium text-accent-900 mb-2 flex items-center">
-                <PhoneIcon className="h-5 w-5 text-accent-600 mr-2" />
-                Professional Recommendation
-              </h4>
-              <p className="text-accent-800 text-sm mb-3">
-                For this type of problem, we recommend consulting with a certified professional for safety and best results.
-              </p>
-              <button 
-                onClick={() => {
-                  setLocationServiceType('electrician') // Default, can be made dynamic
-                  setShowLocationSearch(true)
-                }}
-                className="btn-secondary text-sm"
-              >
-                Find Professionals Near Me
-              </button>
-            </div>
-          )}
-
           {/* Location Suggestions - Inline */}
           {message.suggest_location_search && message.location_service_type && (
             <LocationSuggestions 
               serviceType={message.location_service_type}
               userLocation={userLocation}
             />
-          )}
-
-          {/* Location Search Suggestion */}
-          {message.suggest_location_search && message.location_service_type && (
-            <div className="mt-3 bg-blue-50 border border-blue-200 rounded-xl p-4">
-              <h4 className="font-medium text-blue-900 mb-2 flex items-center">
-                <MapPinIcon className="h-5 w-5 text-blue-600 mr-2" />
-                Find Local Professional Services
-              </h4>
-              <p className="text-blue-800 text-sm mb-3">
-                {message.location_message}
-              </p>
-              <button 
-                onClick={() => {
-                  setLocationServiceType(message.location_service_type)
-                  setShowLocationSearch(true)
-                }}
-                className="bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-blue-700 transition-colors flex items-center space-x-2"
-              >
-                <MapPinIcon className="h-4 w-4" />
-                <span>Find Nearby {message.location_service_type}s</span>
-              </button>
-            </div>
           )}
 
           {/* Confidence Score */}
