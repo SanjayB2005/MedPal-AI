@@ -43,13 +43,13 @@ class GeminiService {
     try {
       console.log('Processing image with Gemini Vision API...')
       
-      // Use actual available Gemini models (verified December 2025)
+      // Use lite models with higher free tier quotas
       const modelNames = [
+        'gemini-flash-lite-latest',
+        'gemini-2.0-flash-lite',
+        'gemini-2.5-flash-lite',
         'gemini-2.5-flash',
-        'gemini-flash-latest',
-        'gemini-2.0-flash',
-        'gemini-2.5-pro',
-        'gemini-pro-latest'
+        'gemini-flash-latest'
       ]
       
       let lastError = null
@@ -200,13 +200,13 @@ Keep it short, clear, and visually appealing!`
    * Generate response with exponential backoff retry
    */
   async generateWithRetry(prompt, maxRetries = 3) {
-    // Use actual available Gemini models (verified December 2025)
+    // Use lite models with higher free tier quotas
     const modelNames = [
+      'gemini-flash-lite-latest',
+      'gemini-2.0-flash-lite',
+      'gemini-2.5-flash-lite',
       'gemini-2.5-flash',
-      'gemini-flash-latest',
-      'gemini-2.0-flash',
-      'gemini-2.5-pro',
-      'gemini-pro-latest'
+      'gemini-flash-latest'
     ];
     
     for (const modelName of modelNames) {
